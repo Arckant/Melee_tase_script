@@ -4,25 +4,22 @@ Citizen.CreateThread(function()
     GiveWeaponToPed(player, 911657153, 1, false, false)
     if GetSelectedPedWeapon(player) == 911657153 then
       if IsControlJustReleased(1, 288) then -------------- F1
-        if Vdist2(GetEntityCoords(GetPlayerPed(GetNearestPlayerToEntity(player))), GetEntityCoords(player)) < 2 and GetPlayerPed(GetNearestPlayerToEntity(player)) ~= player then
+        if #(GetEntityCoords(GetEntityPlayerIsFreeAimingAt(player)) - GetEntityCoords(player)) < 2 and GetPlayerPed(GetNearestPlayerToEntity(player)) ~= player then
           target = GetPlayerPed(GetNearestPlayerToEntity(player));
         else
-          target = GetRandomPedAtCoord(GetEntityCoords(player), 5.0, 5.0, 5.0, -1);
+          target = GetRandomPedAtCoord(front_space_coord, 1.5, 1.5, 1.5, -1);
         end
 
-        
-        heading_shooter = GetEntityHeading(player)
-        heading_target = GetEntityHeading(target)
-        
-        if heading_shooter - heading_target < 0 then
-          local dif = (heading_shooter - heading_target) * -1
+          
+        if GetEntityHeading(player) - GetEntityHeading(target) < 0 then
+          local dif = (GetEntityHeading(player) - GetEntityHeading(target)) * -1
           if dif > 180 then
             angle = 360 - dif
           else
             angle = dif
           end
         else
-          local dif = heading_shooter - heading_target
+          local dif = GetEntityHeading(player) - GetEntityHeading(target)
           if dif > 180 then
             angle = 360 - dif
           else
@@ -33,14 +30,14 @@ Citizen.CreateThread(function()
 
         if angle > 90 then
           facing = true
-          if heading_shooter + 180 > 360 then
-            SetEntityHeading(target, heading_shooter - 180)
+          if GetEntityHeading(player) + 180 > 360 then
+            SetEntityHeading(target, GetEntityHeading(player) - 180)
           else
-            SetEntityHeading(target, heading_shooter + 180)
+            SetEntityHeading(target, GetEntityHeading(player) + 180)
           end
         else
           facing = false
-          SetEntityHeading(target, heading_shooter)
+          SetEntityHeading(target, GetEntityHeading(player))
         end
 
         local anim_dict_shooter = 'combat@chg_positionpose_b'
@@ -59,22 +56,22 @@ Citizen.CreateThread(function()
         x = 0 
         y = 0
 
-        if heading_shooter < 22.5 or heading_shooter > 337.5 then
+        if GetEntityHeading(player) < 22.5 or GetEntityHeading(player) > 337.5 then
           y1 = y1+1;
-        elseif heading_shooter > 22.5 and heading_shooter < 67.5 then
+        elseif GetEntityHeading(player) > 22.5 and GetEntityHeading(player) < 67.5 then
           y1 = y1+0.5;
           x1 = x1-0.5;
-        elseif heading_shooter > 67.5 and heading_shooter < 112.5 then
+        elseif GetEntityHeading(player) > 67.5 and GetEntityHeading(player) < 112.5 then
           x1 = x1-1
-        elseif heading_shooter > 112.5 and heading_shooter < 157.5 then
+        elseif GetEntityHeading(player) > 112.5 and GetEntityHeading(player) < 157.5 then
           y1 = y1-0.5;
           x1 = x1-0.5;
-        elseif heading_shooter > 157.5 and heading_shooter < 202.5 then
+        elseif GetEntityHeading(player) > 157.5 and GetEntityHeading(player) < 202.5 then
           y1 = y1-1;
-        elseif heading_shooter > 202.5 and heading_shooter < 247.5 then
+        elseif GetEntityHeading(player) > 202.5 and GetEntityHeading(player) < 247.5 then
           y1 = y1-0.5;
           x1 = x1+0.5;
-        elseif heading_shooter > 247.5 and heading_shooter < 292.5 then 
+        elseif GetEntityHeading(player) > 247.5 and GetEntityHeading(player) < 292.5 then 
           x1 = x1+1
         else
           y1 = y1+0.5;
@@ -83,7 +80,7 @@ Citizen.CreateThread(function()
 
         front_space_coord = vector3(x1, y1, z1 - 1)
         
-        if Vdist2(GetEntityCoords(GetPlayerPed(GetNearestPlayerToEntity(player))), front_space_coord) < 2 and GetPlayerPed(GetNearestPlayerToEntity(player)) ~= player then
+        if #(GetEntityCoords(GetEntityPlayerIsFreeAimingAt(player)) - GetEntityCoords(player)) < 2 and GetPlayerPed(GetNearestPlayerToEntity(player)) ~= player then
           target = GetPlayerPed(GetNearestPlayerToEntity(player));
         else
           target = GetRandomPedAtCoord(front_space_coord, 1.5, 1.5, 1.5, -1);
@@ -118,10 +115,8 @@ Citizen.CreateThread(function()
           SetPedToRagdoll(target, 10000, 10000, 0)
           
         end
-        
       end
     end
-
     Citizen.Wait(1)
   end
 end)
