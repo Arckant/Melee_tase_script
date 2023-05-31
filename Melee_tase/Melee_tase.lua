@@ -1,13 +1,48 @@
 player = GetPlayerPed(-1)
 
+function GetPlayerLookingVector(playerped, radius)
+	local yaw = GetEntityHeading(playerped)
+	local pitch = 90.0-GetGameplayCamRelativePitch()
+
+	if yaw > 180 then
+		yaw = yaw - 360
+	elseif yaw < -180 then
+		yaw = yaw + 360
+	end
+
+	local pitch = pitch * math.pi / 180
+	local yaw = yaw * math.pi / 180
+	local x = radius * math.sin(pitch) * math.sin(yaw)
+	local y = radius * math.sin(pitch) * math.cos(yaw)
+	local z = radius * math.cos(pitch)
+
+	local playerpedcoords = GetEntityCoords(playerped)
+	local xcorr = -x+ playerpedcoords.x
+	local ycorr = y+ playerpedcoords.y
+	local zcorr = z+ playerpedcoords.z
+	local Vector = vector3(tonumber(xcorr), tonumber(ycorr), tonumber(zcorr))
+	return Vector
+end
+
 Citizen.CreateThread(function()
   while true do
     GiveWeaponToPed(player, 911657153, 1, false, false)
     if GetSelectedPedWeapon(player) == 911657153 then
       if IsControlJustReleased(1, 288) then -------------- F1
-        target = GetEntityPlayerIsFreeAimingAt(player)
-        if target ~= 0 and #(GetEntityCoords(GetEntityPlayerIsFreeAimingAt(player)) - GetEntityCoords(player)) < 2 then 
-
+        function GetPedInDirection(coordFrom, coordTo)
+          local rayHandle = StartShapeTestRay(coordFrom.x, coordFrom.y, coordFrom.z, coordTo.x, coordTo.y, coordTo.z, 4, GetPlayerPed(-1), 0)
+          local _,flag_PedHit,PedCoords,_,PedHit = GetShapeTestResult(rayHandle)
+          return flag_PedHit, PedCoords, PedHit
+        end
+        
+        flag_PedHit, PedCoords, target = GetPedInDirection(GetEntityCoords(player), GetPlayerLookingVector(player, 1))
+        
+        if target == 0 and IsPedAPlayer(GetEntityPlayerIsFreeAimingAt(player)) and #(GetEntityCoords(GetEntityPlayerIsFreeAimingAt(player)) - GetEntityCoords(player)) < 1.5 then
+          target = GetEntityPlayerIsFreeAimingAt(player)
+        end
+        
+        x, y, z = table.unpack(GetPlayerLookingVector(player, 1))
+        if IsEntityAPed(target) then
           if GetEntityHeading(player) - GetEntityHeading(target) < 0 then
             local dif =  GetEntityHeading(target) - GetEntityHeading(player)
             if dif > 180 then
@@ -57,6 +92,7 @@ Citizen.CreateThread(function()
           ClearPedTasks(player)
           ClearPedTasks(target)
           
+          SetEntityCoords(target, x, y, z-0.5, 0, 0, 0, false)
 
           TaskPlayAnim(player, anim_dict_shooter, anim_clip_shooter, 4.0, 4.0, 2500, 0, 0.0)
           TaskPlayAnim(target, anim_dict_target, anim_clip_target, 4.0, 4.0, -1, 0, 0.0)
@@ -73,4 +109,3 @@ Citizen.CreateThread(function()
     Citizen.Wait(1)
   end
 end)
-
